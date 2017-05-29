@@ -1,0 +1,3 @@
+rootProject.name = 'FixItWorkerApp'
+
+include ':app'
