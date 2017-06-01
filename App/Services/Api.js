@@ -2,7 +2,7 @@
 import apisauce from 'apisauce'
 
 // our "constructor"
-const create = (baseURL = 'https://api.github.com/') => {
+const create = (baseURL = 'https://gleis.fix-it.com.co/api/') => {
   // ------
   // STEP 1
   // ------
@@ -35,7 +35,7 @@ const create = (baseURL = 'https://api.github.com/') => {
   // way at this level.
   //
   const getRoot = () => api.get('')
-  const getRate = () => api.get('rate_limit')
+  const getToken = (username, password) => api.post('token-auth/', {username: username, password: password})
   const getUser = (username) => api.get('search/users', {q: username})
 
   // ------
@@ -53,7 +53,7 @@ const create = (baseURL = 'https://api.github.com/') => {
   return {
     // a list of the API functions from step 2
     getRoot,
-    getRate,
+    getToken,
     getUser
   }
 }

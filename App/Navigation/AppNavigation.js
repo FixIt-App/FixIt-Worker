@@ -1,12 +1,12 @@
 import { StackNavigator } from 'react-navigation'
-import LaunchScreen from '../Containers/LaunchScreen'
+import WorksScreen from '../Containers/WorksScreen'
 import LoginScreen from '../Containers/LoginScreen'
 
 import styles from './Styles/NavigationStyles'
 
 // Manifest of possible screens
 const PrimaryNav = StackNavigator({
-  LaunchScreen: { screen: LaunchScreen },
+  WorksScreen: { screen: WorksScreen },
   LoginScreen: {
     screen: LoginScreen,
     navigationOptions: { title: 'Login' }
@@ -14,7 +14,7 @@ const PrimaryNav = StackNavigator({
 }, {
   // Default config for all screens
   headerMode: 'none',
-  initialRouteName: 'LaunchScreen',
+  initialRouteName: 'LoginScreen',
   navigationOptions: {
     headerStyle: styles.header
   }

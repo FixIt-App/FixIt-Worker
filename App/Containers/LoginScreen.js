@@ -1,85 +1,52 @@
-import React, { PropTypes } from 'react'
+import React from 'react'
 import {
   View,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
   Image,
-  Keyboard,
-  LayoutAnimation
+  TextInput,
+  Button,
+  ToastAndroid,
+  AsyncStorage
 } from 'react-native'
-import { connect } from 'react-redux'
+import { Images } from '../Themes'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import DevscreensButton from '../../ignite/DevScreens/DevscreensButton.js'
+import API from '../Services/Api'
+
+// Styles
 import styles from './Styles/LoginScreenStyles'
-import {Images, Metrics} from '../Themes'
-import LoginActions from '../Redux/LoginRedux'
 
-class LoginScreen extends React.Component {
-  static propTypes = {
-    dispatch: PropTypes.func,
-    fetching: PropTypes.bool,
-    attemptLogin: PropTypes.func
-  }
-
-  isAttempting = false
-  keyboardDidShowListener = {}
-  keyboardDidHideListener = {}
+export default class LoginScreen extends React.Component {
+  api = {}
 
   constructor (props) {
     super(props)
+    this.username = ''
+    this.password = ''
     this.state = {
       username: 'reactnative@infinite.red',
-      password: 'password',
-      visibleHeight: Metrics.screenHeight,
-      topLogo: { width: Metrics.screenWidth }
+      password: 'password'
     }
-    this.isAttempting = false
+
+    this.api = API.create()
   }
 
-  componentWillReceiveProps (newProps) {
-    this.forceUpdate()
-    // Did the login attempt complete?
-    if (this.isAttempting && !newProps.fetching) {
-      this.props.navigation.goBack()
-    }
-  }
-
-  componentWillMount () {
-    // Using keyboardWillShow/Hide looks 1,000 times better, but doesn't work on Android
-    // TODO: Revisit this if Android begins to support - https://github.com/facebook/react-native/issues/3468
-    this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this.keyboardDidShow)
-    this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide)
-  }
-
-  componentWillUnmount () {
-    this.keyboardDidShowListener.remove()
-    this.keyboardDidHideListener.remove()
-  }
-
-  keyboardDidShow = (e) => {
-    // Animation types easeInEaseOut/linear/spring
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    let newSize = Metrics.screenHeight - e.endCoordinates.height
-    this.setState({
-      visibleHeight: newSize,
-      topLogo: {width: 100, height: 70}
-    })
-  }
-
-  keyboardDidHide = (e) => {
-    // Animation types easeInEaseOut/linear/spring
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    this.setState({
-      visibleHeight: Metrics.screenHeight,
-      topLogo: {width: Metrics.screenWidth}
-    })
-  }
-
-  handlePressLogin = () => {
+  signIn = () => {
     const { username, password } = this.state
-    this.isAttempting = true
-    // attempt a login - a saga is listening to pick it up from here.
-    this.props.attemptLogin(username, password)
+    const token = this.api.getToken(username, password)
+      .then((data) => {
+        console.log(data)
+        if (data.status == 200) {
+          ToastAndroid.show('Login Successful' + token, ToastAndroid.SHORT)
+          AsyncStorage.setItem('token', token)
+          this.openWorksList()
+        } else {
+          ToastAndroid.show('Credenciales incorrectas. Inténtalo de nuevo.', ToastAndroid.SHORT)
+        }
+      })
+      .catch((error) => {
+        ToastAndroid.show('Error. por favor intenta más tarde.', ToastAndroid.SHORT)
+        console.log(error)
+      })
   }
 
   handleChangeUsername = (text) => {
@@ -90,79 +57,48 @@ class LoginScreen extends React.Component {
     this.setState({ password: text })
   }
 
+  openWorksList = () => {
+    this.props.navigation.navigate('WorksScreen')
+  }
+
   render () {
-    const { username, password } = this.state
-    const { fetching } = this.props
-    const editable = !fetching
-    const textInputStyle = editable ? styles.textInput : styles.textInputReadonly
     return (
-      <ScrollView contentContainerStyle={{justifyContent: 'center'}} style={[styles.container, {height: this.state.visibleHeight}]} keyboardShouldPersistTaps='always'>
-        <Image source={Images.logo} style={[styles.topLogo, this.state.topLogo]} />
-        <View style={styles.form}>
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Username</Text>
+      <KeyboardAwareScrollView>
+        <View style={styles.container}>
+          <View style={styles.centered}>
+            <Image source={Images.logo} style={styles.logo} />
+          </View>
+          <View style={styles.section} >
             <TextInput
               ref='username'
-              style={textInputStyle}
-              value={username}
-              editable={editable}
-              keyboardType='default'
-              returnKeyType='next'
+              style={styles.input}
+              placeholder='Ingresa tu correo'
               autoCapitalize='none'
               autoCorrect={false}
               onChangeText={this.handleChangeUsername}
-              underlineColorAndroid='transparent'
-              onSubmitEditing={() => this.refs.password.focus()}
-              placeholder='Username' />
-          </View>
+            />
 
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Password</Text>
             <TextInput
               ref='password'
-              style={textInputStyle}
-              value={password}
-              editable={editable}
-              keyboardType='default'
-              returnKeyType='go'
+              style={styles.input}
+              placeholder='Ingresa tu Contraseña'
+              secureTextEntry={true}
               autoCapitalize='none'
               autoCorrect={false}
-              secureTextEntry
               onChangeText={this.handleChangePassword}
-              underlineColorAndroid='transparent'
-              onSubmitEditing={this.handlePressLogin}
-              placeholder='Password' />
-          </View>
-
-          <View style={[styles.loginRow]}>
-            <TouchableOpacity style={styles.loginButtonWrapper} onPress={this.handlePressLogin}>
-              <View style={styles.loginButton}>
-                <Text style={styles.loginText}>Sign In</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.loginButtonWrapper} onPress={() => this.props.navigation.goBack()}>
-              <View style={styles.loginButton}>
-                <Text style={styles.loginText}>Cancel</Text>
-              </View>
-            </TouchableOpacity>
+            />
+            <View style={styles.signinContainer}>
+              <Button
+                title='Inicia Sesión'
+                onPress={this.signIn}
+                color='#12A19B'
+                accessibilityLabel='Inicia sesión con tu usuario y contraseña'
+              />
+            </View>
           </View>
         </View>
-
-      </ScrollView>
+        <DevscreensButton />
+      </KeyboardAwareScrollView>
     )
   }
 }
-
-const mapStateToProps = (state) => {
-  return {
-    fetching: state.login.fetching
-  }
-}
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    attemptLogin: (username, password) => dispatch(LoginActions.loginRequest(username, password))
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen)
