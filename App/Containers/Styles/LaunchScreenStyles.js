@@ -8,7 +8,7 @@ export default StyleSheet.create({
     paddingBottom: Metrics.baseMargin,
     flex: 1,
     backgroundColor: 'white',
-    paddingTop: 50,
+    paddingTop: 50
   },
   logo: {
     marginTop: Metrics.doubleSection,
@@ -26,10 +26,10 @@ export default StyleSheet.create({
   signinContainer: {
     width: 170,
     height: 200,
-    paddingTop: 30,
+    paddingTop: 30
   },
   signin: {
     backgroundColor: '#12A19B',
-    width: 270,
+    width: 270
   }
 })
