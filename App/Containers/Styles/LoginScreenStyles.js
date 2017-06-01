@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native'
 import { Metrics, ApplicationStyles } from '../../Themes/'
 
-// @ts-ignore
 export default StyleSheet.create({
   ...ApplicationStyles.screen,
   container: {
